@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Passenger Details - IRCTC</title>
+    <style>
+        :root { --navy: #213d77; --orange: #fb792b; --gray: #f4f4f4; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #eff3f8; margin: 0; }
+        
+        /* Header */
+        .header { background: white; padding: 10px 5%; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--navy); }
+        
+        .container { width: 95%; max-width: 1200px; margin: 20px auto; display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+        
+        /* Cards */
+        .card { background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 20px; overflow: hidden; }
+        .card-header { background: #f8f9fa; padding: 15px 20px; border-bottom: 1px solid #eee; color: var(--navy); font-weight: bold; }
+        .card-body { padding: 20px; }
+
+        /* Journey Summary Info */
+        .journey-info { display: flex; justify-content: space-between; align-items: center; background: var(--navy); color: white; padding: 15px 20px; border-radius: 4px; margin-bottom: 20px; }
+        
+        /* Passenger Inputs */
+        .psgn-row { display: grid; grid-template-columns: 30px 2fr 1fr 1fr 1fr; gap: 10px; align-items: center; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px dashed #ccc; }
+        input, select { padding: 10px; border: 1px solid #ccc; border-radius: 4px; width: 100%; box-sizing: border-box; font-size: 14px; }
+        
+        /* Sidebar */
+        .sidebar { position: sticky; top: 20px; }
+        .fare-card { background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .fare-row { display: flex; justify-content: space-between; padding: 12px 20px; border-bottom: 1px solid #eee; }
+        .total-row { background: #fff4ed; color: var(--orange); font-size: 20px; font-weight: bold; border-top: 2px solid var(--orange); }
+
+        .btn-add { color: #007bff; background: none; border: none; cursor: pointer; font-weight: bold; padding: 10px 0; font-size: 14px; }
+        .btn-pay { background: var(--orange); color: white; border: none; width: 100%; padding: 15px; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 10px; border-radius: 0 0 8px 8px; }
+        .btn-pay:hover { background: #e66a21; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <img src="https://www.irctc.co.in/nget/assets/images/logo_top_eng.jpg" height="45">
+        <div style="text-align: right; color: var(--navy);">
+            <strong>Customer Support: 14646</strong>
+        </div>
+    </div>
+
+    <form action="/confirm" method="POST" class="container">
+        <!-- Hidden inputs to carry train data using 'tix' -->
+        {% for k,v in tix.items() %}
+            <input type="hidden" name="{{k}}" value="{{v}}">
+        {% endfor %}
+
+        <!-- Left Side: Inputs -->
+        <div class="main-content">
+            <div class="journey-info">
+                <div>
+                    <span style="font-size: 12px; opacity: 0.8;">Train Details</span><br>
+                    <strong>{{ tix.t_no }} | {{ tix.t_name }}</strong>
+                </div>
+                <div style="text-align: center;">
+                    <strong>{{ tix.src }} ➔ {{ tix.dest }}</strong><br>
+                    <small>{{ tix.class }} | General Quota</small>
+                </div>
+                <div style="text-align: right;">
+                    <strong>Boarding Date</strong><br>
+                    {{ tix.date }}
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">Passenger Details</div>
+                <div class="card-body">
+                    <div id="passenger-list">
+                        <div class="psgn-row">
+                            <span>1</span>
+                            <input type="text" name="p_name[]" placeholder="Passenger Name" required>
+                            <input type="number" name="p_age[]" placeholder="Age" required>
+                            <select name="p_gender[]">
+                                <option>Male</option>
+                                <option>Female</option>
+                                <option>Transgender</option>
+                            </select>
+                            <select name="p_berth[]">
+                                <option>No Preference</option>
+                                <option>Lower</option>
+                                <option>Middle</option>
+                                <option>Upper</option>
+                                <option>Side Lower</option>
+                                <option>Side Upper</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-add" onclick="addPassenger()">+ Add Passenger</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">Contact Details</div>
+                <div class="card-body">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <input type="email" placeholder="Email (For E-Ticket)" required>
+                        <input type="tel" placeholder="Mobile Number" required>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Side: Fare Sidebar -->
+        <div class="sidebar">
+            <div class="fare-card">
+                <div class="card-header">Fare Summary</div>
+                <div class="fare-row">
+                    <span>Ticket Fare</span>
+                    <span>₹{{ tix.price }}</span>
+                </div>
+                <div class="fare-row">
+                    <span>Convenience Fee (Incl. GST)</span>
+                    <span>₹17.70</span>
+                </div>
+                <div class="fare-row total-row">
+                    <span>Total Amount</span>
+                    <span>₹<span id="display-total">{{ tix.price }}</span></span>
+                </div>
+                <button type="submit" class="btn-pay">PROCEED TO PAY</button>
+            </div>
+            <p style="font-size: 12px; color: #666; margin-top: 15px; padding: 0 10px;">
+                By clicking proceed, you agree to the IRCTC terms and conditions.
+            </p>
+        </div>
+    </form>
+
+    <script>
+        let pCount = 1;
+        const basePrice = parseFloat("{{ tix.price }}");
+
+        function addPassenger() {
+            if (pCount < 6) {
+                pCount++;
+                const container = document.getElementById('passenger-list');
+                const row = document.createElement('div');
+                row.className = 'psgn-row';
+                row.innerHTML = `
+                    <span>${pCount}</span>
+                    <input type="text" name="p_name[]" placeholder="Passenger Name" required>
+                    <input type="number" name="p_age[]" placeholder="Age" required>
+                    <select name="p_gender[]">
+                        <option>Male</option>
+                        <option>Female</option>
+                    </select>
+                    <select name="p_berth[]">
+                        <option>No Preference</option>
+                        <option>Lower</option>
+                    </select>
+                `;
+                container.appendChild(row);
+                
+                // Update Fare dynamically
+                document.getElementById('display-total').innerText = (pCount * basePrice).toFixed(2);
+            } else {
+                alert("Maximum 6 passengers allowed per booking.");
+            }
+        }
+    </script>
+</body>
+</html>

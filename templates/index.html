@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>IRCTC Train Search</title>
+    <style>
+        :root { --navy: #213d77; --orange: #fb792b; }
+        body { font-family: Arial, sans-serif; background: #eff3f8; margin: 0; }
+        .header { background: white; padding: 10px 5%; display: flex; align-items: center; border-bottom: 4px solid var(--navy); }
+        .search-container { background: var(--navy); padding: 30px; color: white; text-align: center; }
+        .train-card { background: white; width: 85%; margin: 20px auto; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); overflow: hidden; }
+        .class-grid { display: flex; gap: 15px; padding: 20px; overflow-x: auto; }
+        .class-box { border: 1px solid #ddd; padding: 15px; min-width: 130px; cursor: pointer; border-radius: 6px; background: #fdfdfd; transition: 0.3s; }
+        .class-box:hover { border-color: var(--navy); }
+        .class-box.selected { border: 2px solid var(--orange); background: #fff4ed; }
+        .btn-book { background: var(--orange); color: white; border: none; padding: 12px 45px; font-weight: bold; cursor: pointer; border-radius: 4px; margin: 20px; float: right; }
+        select, input { padding: 12px; width: 200px; border-radius: 4px; border: none; font-size: 14px; margin: 5px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="https://www.irctc.co.in/nget/assets/images/logo_top_eng.jpg" height="50">
+        <h1 style="margin-left: 20px; color: var(--navy); font-size: 24px;">Indian Railways</h1>
+    </div>
+
+    <form class="search-container" method="GET">
+        <select name="src" required>
+            <option value="">From Station</option>
+            {% for k, v in stations.items()|sort(attribute='1') %}
+                <option value="{{k}}" {% if request.args.get('src') == k %}selected{% endif %}>{{v}} ({{k}})</option>
+            {% endfor %}
+        </select>
+        <span style="font-size: 25px; margin: 0 10px;">➔</span>
+        <select name="dest" required>
+            <option value="">To Station</option>
+            {% for k, v in stations.items()|sort(attribute='1') %}
+                <option value="{{k}}" {% if request.args.get('dest') == k %}selected{% endif %}>{{v}} ({{k}})</option>
+            {% endfor %}
+        </select>
+        <input type="date" name="date" required value="{{ request.args.get('date', '') }}">
+        <button type="submit" style="background: var(--orange); color: white; padding: 12px 30px; border: none; font-weight: bold; cursor: pointer; border-radius: 4px;">FIND TRAINS</button>
+    </form>
+
+    <div style="padding-bottom: 40px;">
+        {% for t in trains %}
+        <div class="train-card">
+            <div style="background: #f8f9fa; padding: 15px; display: flex; justify-content: space-between; border-bottom: 1px solid #eee; align-items: center;">
+                <div>
+                    <h3 style="color: var(--navy); margin: 0;">{{t.name}}</h3>
+                    <small style="color: #666;">#{{t.no}} | Runs Daily</small>
+                </div>
+                <div style="text-align: right;">
+                    <span style="font-weight: bold; font-size: 18px;">{{t.dept}}</span> 
+                    <span style="color: #ccc; margin: 0 10px;">——</span> 
+                    <span style="font-weight: bold; font-size: 18px;">{{t.arr}}</span>
+                </div>
+            </div>
+
+            <form action="/book" method="POST">
+                <input type="hidden" name="t_name" value="{{t.name}}">
+                <input type="hidden" name="t_no" value="{{t.no}}">
+                <input type="hidden" name="src" value="{{request.args.get('src')}}">
+                <input type="hidden" name="dest" value="{{request.args.get('dest')}}">
+                
+                <!-- Automatically pick the first class as default -->
+                {% set first_class = (t.fares.keys()|list)[0] %}
+                {% set first_price = (t.fares.values()|list)[0] %}
+                <input type="hidden" name="price" id="p-{{t.no}}" value="{{ first_price }}">
+                <input type="hidden" name="class" id="c-{{t.no}}" value="{{ first_class }}">
+
+                <div class="class-grid">
+                    {% for class_code, price in t.fares.items() %}
+                    <div class="class-box {% if loop.first %}selected{% endif %}" 
+                         onclick="sel(this, '{{t.no}}', '{{class_code}}', {{price}})">
+                        <b style="font-size: 16px;">{{ class_code }}</b><br>
+                        <small style="color: green;">Available</small><br>
+                        <h3 style="color: var(--orange); margin: 8px 0 0 0;">₹{{ price }}</h3>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div style="background: #fff; border-top: 1px solid #eee; padding: 10px; overflow: hidden;">
+                    <button type="submit" class="btn-book">BOOK NOW</button>
+                </div>
+            </form>
+        </div>
+        {% endfor %}
+    </div>
+
+    <script>
+        function sel(el, tId, cls, pr) {
+            // Find current card's grid
+            const grid = el.closest('.class-grid');
+            grid.querySelectorAll('.class-box').forEach(b => b.classList.remove('selected'));
+            el.classList.add('selected');
+            
+            // Update the hidden inputs for this specific train's form
+            document.getElementById('p-' + tId).value = pr;
+            document.getElementById('c-' + tId).value = cls;
+        }
+    </script>
+</body>
+</html>

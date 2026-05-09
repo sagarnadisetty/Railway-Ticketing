@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Electronic Reservation Slip - IRCTC</title>
+    <style>
+        :root { --navy: #213d77; --orange: #fb792b; }
+        body { font-family: Arial, sans-serif; background: #f0f0f0; margin: 0; padding: 20px; }
+        
+        .ticket { 
+            width: 850px; 
+            margin: 0 auto; 
+            background: white; 
+            border: 1px solid var(--navy); 
+            position: relative; 
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        
+        .watermark { 
+            position: absolute; 
+            top: 35%; 
+            left: 15%; 
+            font-size: 70px; 
+            color: rgba(0,0,0,0.04); 
+            transform: rotate(-35deg); 
+            pointer-events: none; 
+            font-weight: bold;
+            z-index: 0;
+        }
+
+        .header-main { padding: 15px; display: flex; justify-content: space-between; align-items: center; }
+        
+        .header-strip { 
+            background: var(--navy); 
+            color: white; 
+            padding: 8px 15px; 
+            display: flex; 
+            justify-content: space-between; 
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .pnr-box { 
+            background: #f9f9f9; 
+            padding: 20px; 
+            display: flex; 
+            justify-content: space-between; 
+            font-size: 18px; 
+            border-bottom: 2px dashed #bbb; 
+        }
+
+        .journey-details { padding: 20px; background: #fffcf5; border-bottom: 1px solid #eee; }
+        
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; z-index: 1; position: relative; }
+        th { background: #f2f2f2; border: 1px solid #ddd; padding: 12px; text-align: left; color: var(--navy); }
+        td { border: 1px solid #ddd; padding: 12px; text-align: left; background: rgba(255,255,255,0.8); }
+
+        .fare-section { 
+            text-align: right; 
+            padding: 20px; 
+            border-top: 2px solid var(--navy); 
+            background: #fff;
+        }
+
+        .btn-container { text-align: center; margin-top: 20px; }
+        .btn-print { 
+            padding: 15px 40px; 
+            background: var(--orange); 
+            color: white; 
+            border: none; 
+            border-radius: 4px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            font-size: 16px;
+        }
+
+        @media print {
+            body { background: white; padding: 0; }
+            .btn-print, .btn-container { display: none; }
+            .ticket { border: none; width: 100%; margin: 0; box-shadow: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="ticket">
+        <div class="watermark">IT-INVOICE CONFIRMED</div>
+        
+        <div class="header-main">
+            <img src="https://www.irctc.co.in/nget/assets/images/logo_top_eng.jpg" height="50">
+            <div style="text-align: right;">
+                <small style="color: #666;">Booking Date: 09-May-2026</small>
+            </div>
+        </div>
+
+        <div class="header-strip">
+            <span>Electronic Reservation Slip (ERS)</span>
+            <span>IRCTC RAIL CONNECT</span>
+        </div>
+
+        <div class="pnr-box">
+            <div>PNR: <b style="color: var(--orange);">{{ pnr }}</b></div>
+            <div>Train: <b>{{ tix.t_no }} / {{ tix.t_name }}</b></div>
+        </div>
+
+        <div class="journey-details">
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+                <div>
+                    <small style="color: #666;">From</small><br>
+                    <strong>{{ tix.src }}</strong>
+                </div>
+                <div style="text-align: center;">
+                    <small style="color: #666;">Class</small><br>
+                    <strong>{{ tix.class }}</strong>
+                </div>
+                <div style="text-align: right;">
+                    <small style="color: #666;">To</small><br>
+                    <strong>{{ tix.dest }}</strong>
+                </div>
+            </div>
+        </div>
+
+        <div style="padding: 20px;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>S.No</th>
+                        <th>Passenger Name</th>
+                        <th>Age</th>
+                        <th>Coach / Berth</th>
+                        <th>Booking Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in passengers %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ p.name | upper }}</td>
+                        <td>{{ p.age }}</td>
+                        <td>{{ p.coach }} / {{ p.berth }}</td>
+                        <td style="color: green; font-weight: bold;">CONFIRMED (CNF)</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <div class="fare-section">
+                <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+                    <div style="text-align: left; font-size: 13px; color: #444;">
+                        <p style="margin: 2px 0;">Ticket Fare (per person): <b>₹{{ tix.price }}</b></p>
+                        <p style="margin: 2px 0;">Total Passengers: <b>{{ tix.passenger_count }}</b></p>
+                        <small>Payment Mode: Internet Banking</small>
+                    </div>
+                    <div>
+                        <h2 style="margin: 5px 0; color: var(--navy);">Total Amount: ₹{{ tix.total_fare }}</h2>
+                        <p style="font-size: 11px; color: #777;">*Inclusive of GST and Convenience Fee.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div style="background: #f4f4f4; padding: 10px; font-size: 10px; text-align: center; border-top: 1px solid #ddd;">
+            THIS TICKET IS VALID ONLY WITH AN ORIGINAL ID PROOF.
+        </div>
+    </div>
+
+    <div class="btn-container">
+        <button class="btn-print" onclick="window.print()">PRINT / DOWNLOAD E-TICKET</button>
+        <p style="font-size: 13px; color: #666; margin-top: 10px;">(Select 'Save as PDF' in the print destination)</p>
+    </div>
+
+</body>
+</html>

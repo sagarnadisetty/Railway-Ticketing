@@ -1,0 +1,20 @@
+:root {
+    --irctc-blue: #213d77;
+    --irctc-orange: #fb792b;
+    --irctc-gray: #eff3f8;
+}
+
+body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--irctc-gray); margin: 0; }
+.navbar { background: white; padding: 10px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+.container { width: 90%; max-width: 1100px; margin: 25px auto; }
+
+.card { background: white; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border-top: 4px solid var(--irctc-blue); }
+.train-title { color: var(--irctc-blue); font-size: 1.3rem; font-weight: bold; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 15px; }
+
+.btn-irctc { background: var(--irctc-orange); color: white; border: none; padding: 12px 25px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+.btn-irctc:hover { background: #e66a1f; }
+.btn-blue { background: var(--irctc-blue); color: white; text-decoration: none; padding: 8px 15px; border-radius: 4px; font-size: 14px; }
+
+select, input { padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
+
+@media print { .no-print { display: none; } }
